@@ -446,10 +446,11 @@ class _af_design:
     aux = self.predict(seq, return_aux=True, verbose=False, **model_flags, **kwargs)
     plddt = self.aux["plddt"]
     plddt = plddt[self._target_len:] if self.protocol == "binder" else plddt[:self._len]
+    loss = self.aux["loss"]
 
     # optimize!
     if verbose:
-      print("Running semigreedy optimization...")
+      print("Running semigreedy optimization, with starting loss ="+str(loss)+".")
     
     for i in range(iters):
       buff = []
@@ -464,13 +465,19 @@ class _af_design:
       # accept best
       losses = [x["aux"]["loss"] for x in buff]
       best = buff[np.argmin(losses)]
-      self.aux, seq = best["aux"], jnp.array(best["seq"])
-      self.set_seq(seq=seq, bias=self._inputs["bias"])
+      new_loss = best["aux"]["loss"]
+      if new_loss < loss
+        print("    After greedy optimization, loss improved to "+str(new_loss)+", accepting this improvement.")
+        self.aux, seq = best["aux"], jnp.array(best["seq"])
+        self.set_seq(seq=seq, bias=self._inputs["bias"])
+        # update plddt
+        plddt = best["aux"]["plddt"]
+        plddt = plddt[self._target_len:] if self.protocol == "binder" else plddt[:self._len]
+      else
+        print("    Greedy optimization could not improve loss, at best achieving "+str(new_loss)+", rejecting these changes.")
+
       self._save_results(save_best=save_best, verbose=verbose)
 
-      # update plddt
-      plddt = best["aux"]["plddt"]
-      plddt = plddt[self._target_len:] if self.protocol == "binder" else plddt[:self._len]
       self._k += 1
 
   def design_pssm_semigreedy(self, soft_iters=300, hard_iters=32, tries=10, e_tries=None,
