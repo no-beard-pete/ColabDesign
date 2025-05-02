@@ -466,14 +466,14 @@ class _af_design:
       losses = [x["aux"]["loss"] for x in buff]
       best = buff[np.argmin(losses)]
       new_loss = best["aux"]["loss"]
-      if new_loss < loss
+      if new_loss < loss:
         print("    After greedy optimization, loss improved to "+str(new_loss)+", accepting this improvement.")
         self.aux, seq = best["aux"], jnp.array(best["seq"])
         self.set_seq(seq=seq, bias=self._inputs["bias"])
         # update plddt
         plddt = best["aux"]["plddt"]
         plddt = plddt[self._target_len:] if self.protocol == "binder" else plddt[:self._len]
-      else
+      else:
         print("    Greedy optimization could not improve loss, at best achieving "+str(new_loss)+", rejecting these changes.")
 
       self._save_results(save_best=save_best, verbose=verbose)
